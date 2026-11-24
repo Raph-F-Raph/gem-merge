@@ -22,17 +22,17 @@ body{background:linear-gradient(170deg,#2a1f3d,#7a2f5c 60%,#c0504d);display:flex
 .order.ok{border-color:var(--green);animation:pulse 1s infinite}
 @keyframes pulse{50%{transform:scale(1.04)}}
 .order .top{display:flex;align-items:center;gap:4px;width:100%}
-.av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex:none}
+.av{width:30px;height:30px;border-radius:50%;overflow:hidden;flex:none;border:2px solid #fff;box-shadow:0 2px 4px #0004}.av svg{width:100%;height:100%;display:block}
 .order .nm{font-size:10px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rq{display:flex;gap:2px;justify-content:center}
-.rq svg{width:34px;height:34px}
+.rq svg{width:46px;height:46px}
 .rw{font-size:11px;font-weight:800;color:#b07a00}
 #grid{flex:1;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(6,1fr);gap:4px;min-height:0}
 .cell{background:#00000033;border-radius:10px;display:flex;align-items:center;justify-content:center;border:2px solid transparent;cursor:pointer;min-width:0;min-height:0}
 .cell.sel{border-color:var(--gold);background:#ffffff33;transform:scale(1.05)}
 .cell.pop{animation:pop .3s}
 @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
-.cell svg{width:94%;height:94%;filter:drop-shadow(0 2px 2px #0006)}
+.cell svg{width:94%;height:94%;filter:drop-shadow(0 3px 2px #0007)}
 #info{min-height:34px;font-size:13px;text-align:center;opacity:.95;display:flex;align-items:center;justify-content:center}
 .row{display:flex;gap:8px}
 button{font:inherit;border:0;border-radius:16px;padding:12px 10px;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer}
@@ -51,10 +51,14 @@ button:disabled{filter:grayscale(.9) brightness(.8)}
 .prog i{display:block;height:100%;background:linear-gradient(90deg,#ffb347,var(--coral))}
 #renov{background:linear-gradient(180deg,#5dffb4,var(--green));box-shadow:0 4px 0 #11956a}
 #reset{background:none;color:#fff;opacity:.6;font-size:12px;padding:6px;box-shadow:none}
-#dlg{position:fixed;inset:0;background:#000a;display:flex;align-items:flex-end;justify-content:center;z-index:50}
-#dlg .box{width:100%;max-width:480px;background:var(--cream);color:var(--ink);border-radius:22px 22px 0 0;padding:16px;display:flex;flex-direction:column;gap:10px}
-#dlg .who{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
-#dlg .av{width:42px;height:42px;font-size:20px}
+#dlg{position:fixed;inset:0;background:radial-gradient(circle at 50% 35%,#3a2a5acc,#000c);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;z-index:50}
+#dpor{width:min(66vw,270px);margin-bottom:-6px;filter:drop-shadow(0 8px 10px #0008);animation:bob 2.4s ease-in-out infinite}
+#dpor svg{display:block;width:100%;height:auto}
+#dpor.swap{animation:enter .35s ease-out}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes enter{from{transform:translateY(30px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+#dlg .box{width:100%;max-width:480px;background:var(--cream);color:var(--ink);border-radius:22px 22px 0 0;padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;position:relative}
+#dlg .who{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:#b53a3a}
 #dtxt{font-size:16px;line-height:1.4;min-height:66px}
 #dnext{background:linear-gradient(180deg,#ff9a8b,var(--coral));color:#fff;box-shadow:0 4px 0 #b53a3a}
 #toast{position:fixed;left:50%;top:14%;transform:translateX(-50%) translateY(-20px);background:#000b;padding:10px 16px;border-radius:14px;font-weight:700;opacity:0;pointer-events:none;transition:.3s;text-align:center;z-index:60;max-width:90%;font-size:14px}
@@ -62,6 +66,7 @@ button:disabled{filter:grayscale(.9) brightness(.8)}
 </style>
 </head>
 <body>
+<svg id="defs" width="0" height="0" style="position:absolute"><defs id="defsin"></defs></svg>
 <div id="app">
   <div class="bar">
     <div class="pill"><small>Énergie</small><b><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z" fill="#ffd23f" stroke="#e0a100" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="en">30/30</span></b></div>
@@ -88,15 +93,19 @@ button:disabled{filter:grayscale(.9) brightness(.8)}
   </div>
 </div>
 
-<div id="dlg" class="hidden"><div class="box">
-  <div class="who"><span class="av" id="dav"></span><span id="dname"></span></div>
-  <div id="dtxt"></div>
-  <button id="dnext">Suivant</button>
-</div></div>
+<div id="dlg" class="hidden">
+  <div id="dpor"></div>
+  <div class="box">
+    <div class="who"><span id="dname"></span></div>
+    <div id="dtxt"></div>
+    <button id="dnext">Suivant</button>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script>
 (function(){
+function $(id){return document.getElementById(id);}
 var N=36,MAXL=6,KEY='saveurs_villas_v1',EMAX=30,ERT=30000;
 
 var CH={
@@ -140,15 +149,96 @@ deco:[
 ]};
 
 function ico(c,l,badge){
-  return '<svg viewBox="0 0 100 100">'+ICONS[c][l-1]+
+  return '<svg viewBox="0 0 100 100"><g filter="url(#bevel)">'+ICONS[c][l-1]+'</g>'+
     (badge?'<circle cx="84" cy="16" r="11" fill="#2b1d3a" opacity=".85"/><text x="84" y="21" text-anchor="middle" font-size="14" font-weight="800" fill="#fff">'+l+'</text>':'')+'</svg>';
 }
 function genIco(c){
   var col=CH[c].col;
-  return '<svg viewBox="0 0 100 100"><rect x="6" y="6" width="88" height="88" rx="18" fill="'+col+'" stroke="#fff" stroke-width="3"/>'+
+  return '<svg viewBox="0 0 100 100"><g filter="url(#bevel)"><rect x="6" y="6" width="88" height="88" rx="18" fill="'+col+'" stroke="#fff" stroke-width="3"/>'+
     '<g transform="translate(16 12) scale(.68)">'+ICONS[c][2]+'</g>'+
-    '<circle cx="76" cy="76" r="15" fill="#fff"/><path d="M76 67v18M67 76h18" stroke="'+col+'" stroke-width="6" stroke-linecap="round"/></svg>';
+    '<circle cx="76" cy="76" r="15" fill="#fff"/><path d="M76 67v18M67 76h18" stroke="'+col+'" stroke-width="6" stroke-linecap="round"/></g></svg>';
 }
+
+// Personnages (style dessin avec ombrage)
+var PC={
+  chloe:{skin:"#f6cfa8",hair:"#6b3a1e",top:"#ff6b6b",bot:"#3b4a7a"},
+  marco:{skin:"#e9b78e",hair:"#b9bfc9",top:"#fafafa",bot:"#3a3a48"},
+  val:{skin:"#f3d6bd",hair:"#cfc8e6",top:"#8e44ad",bot:"#5b2a73"},
+  leo:{skin:"#d9a36c",hair:"#2d2118",top:"#f2b134",bot:"#2f4f6f"}
+};
+function shade(hex,a){
+  var n=parseInt(hex.slice(1),16),r=(n>>16)+a,g=((n>>8)&255)+a,b=(n&255)+a;
+  r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+  return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function gdefs(){
+  var h="";
+  Object.keys(PC).forEach(function(k){
+    var c=PC[k];
+    h+='<radialGradient id="sk-'+k+'" cx=".38" cy=".3" r=".85"><stop offset="0" stop-color="'+shade(c.skin,30)+'"/><stop offset=".55" stop-color="'+c.skin+'"/><stop offset="1" stop-color="'+shade(c.skin,-45)+'"/></radialGradient>';
+    h+='<linearGradient id="tp-'+k+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+shade(c.top,35)+'"/><stop offset=".5" stop-color="'+c.top+'"/><stop offset="1" stop-color="'+shade(c.top,-50)+'"/></linearGradient>';
+    h+='<linearGradient id="hr-'+k+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+shade(c.hair,35)+'"/><stop offset=".6" stop-color="'+c.hair+'"/><stop offset="1" stop-color="'+shade(c.hair,-45)+'"/></linearGradient>';
+    h+='<linearGradient id="bt-'+k+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+shade(c.bot,25)+'"/><stop offset="1" stop-color="'+shade(c.bot,-40)+'"/></linearGradient>';
+  });
+  h+='<filter id="bevel" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="b"/><feSpecularLighting in="b" surfaceScale="5" specularConstant=".9" specularExponent="24" lighting-color="#ffffff" result="sp"><fePointLight x="-30" y="-50" z="110"/></feSpecularLighting><feComposite in="sp" in2="SourceAlpha" operator="in" result="sp2"/><feComposite in="SourceGraphic" in2="sp2" operator="arithmetic" k1="0" k2="1" k3=".85" k4="0"/></filter>';
+  return h;
+}
+function personInner(k){
+  var c=PC[k],sk='url(#sk-'+k+')',tp='url(#tp-'+k+')',hr='url(#hr-'+k+')',bt='url(#bt-'+k+')';
+  var hd=shade(c.hair,-70),s="";
+  s+='<ellipse cx="50" cy="156" rx="28" ry="4.5" fill="#0004"/>';
+  // cheveux derrière la tête
+  if(k==="chloe")s+='<path d="M68 18Q98 20 92 66Q86 46 70 38z" fill="'+hr+'"/><ellipse cx="50" cy="38" rx="27" ry="27" fill="'+hr+'"/>';
+  if(k==="val")s+='<circle cx="50" cy="9" r="11" fill="'+hr+'"/><ellipse cx="50" cy="38" rx="27" ry="26" fill="'+hr+'"/>';
+  if(k==="marco")s+='<circle cx="36" cy="8" r="12" fill="#fff"/><circle cx="50" cy="0" r="14" fill="#fff"/><circle cx="64" cy="8" r="12" fill="#fff"/>';
+  // jambes / jupe
+  if(k==="val"){
+    s+='<rect x="38" y="120" width="9" height="32" rx="4" fill="'+sk+'"/><rect x="53" y="120" width="9" height="32" rx="4" fill="'+sk+'"/>';
+    s+='<ellipse cx="42" cy="153" rx="8" ry="4" fill="#2a1a30"/><ellipse cx="58" cy="153" rx="8" ry="4" fill="#2a1a30"/>';
+    s+='<path d="M30 100L70 100L84 138Q50 150 16 138Z" fill="'+tp+'"/>';
+  }else{
+    s+='<rect x="36" y="110" width="12" height="42" rx="5" fill="'+bt+'"/><rect x="52" y="110" width="12" height="42" rx="5" fill="'+bt+'"/>';
+    s+='<ellipse cx="41" cy="153" rx="9.5" ry="4.5" fill="#2a2030"/><ellipse cx="59" cy="153" rx="9.5" ry="4.5" fill="#2a2030"/>';
+  }
+  // bras
+  s+='<ellipse cx="23" cy="92" rx="8" ry="23" fill="'+tp+'" transform="rotate(8 23 92)"/><ellipse cx="77" cy="92" rx="8" ry="23" fill="'+tp+'" transform="rotate(-8 77 92)"/>';
+  s+='<circle cx="20" cy="114" r="6" fill="'+sk+'"/><circle cx="80" cy="114" r="6" fill="'+sk+'"/>';
+  // torse
+  s+='<path d="M27 70Q50 62 73 70L77 118Q50 126 23 118Z" fill="'+tp+'"/>';
+  if(k==="chloe")s+='<path d="M36 82L64 82L67 119Q50 124 33 119Z" fill="#fff4e0"/><path d="M40 82L42 70M60 82L58 70" stroke="#fff4e0" stroke-width="3"/>';
+  if(k==="marco"){
+    [86,98,110].forEach(function(y){s+='<circle cx="45" cy="'+y+'" r="2.2" fill="#9aa5b1"/><circle cx="55" cy="'+y+'" r="2.2" fill="#9aa5b1"/>';});
+    s+='<path d="M37 66Q50 76 63 66L61 77Q50 84 39 77Z" fill="#2a9d8f"/>';
+  }
+  if(k==="leo")s+='<path d="M42 66L50 88L58 66Z" fill="#fff"/><rect x="58" y="96" width="20" height="14" rx="3" fill="#2b2b33"/><circle cx="68" cy="103" r="4.5" fill="#6a7fb8" stroke="#ccc" stroke-width="1.5"/><path d="M60 96L40 70" stroke="#2b2b33" stroke-width="2"/>';
+  if(k==="val")[[38,71],[42,74],[46,76],[50,77],[54,76],[58,74],[62,71]].forEach(function(p){s+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="2.3" fill="#fff" stroke="#ddd" stroke-width=".5"/>';});
+  // cou + tête
+  s+='<rect x="44" y="56" width="12" height="14" rx="4" fill="'+sk+'"/>';
+  s+='<circle cx="26" cy="42" r="5" fill="'+sk+'"/><circle cx="74" cy="42" r="5" fill="'+sk+'"/>';
+  s+='<circle cx="50" cy="38" r="24" fill="'+sk+'"/>';
+  // cheveux devant
+  if(k==="chloe")s+='<path d="M25 38Q24 10 50 10Q76 10 75 38Q64 22 50 25Q38 22 25 38Z" fill="'+hr+'"/>';
+  if(k==="val")s+='<path d="M25 42Q22 11 50 11Q78 11 75 42Q66 26 50 28Q34 26 25 42Z" fill="'+hr+'"/><circle cx="26" cy="52" r="2.6" fill="#fff"/><circle cx="74" cy="52" r="2.6" fill="#fff"/>';
+  if(k==="marco")s+='<rect x="29" y="8" width="42" height="14" rx="4" fill="#f2f2f2" stroke="#dcdcdc" stroke-width="1.5"/><ellipse cx="27" cy="36" rx="4" ry="8" fill="'+hr+'"/><ellipse cx="73" cy="36" rx="4" ry="8" fill="'+hr+'"/>';
+  if(k==="leo")s+='<path d="M25 36L29 8L40 20L48 3L57 20L69 6L72 22L75 36Q64 24 50 26Q36 24 25 36Z" fill="'+hr+'"/>';
+  // visage
+  s+='<circle cx="35" cy="48" r="4.2" fill="#ff6b6b" opacity=".25"/><circle cx="65" cy="48" r="4.2" fill="#ff6b6b" opacity=".25"/>';
+  [41,59].forEach(function(x){
+    s+='<ellipse cx="'+x+'" cy="40" rx="4.6" ry="5.2" fill="#fff"/><circle cx="'+(x+.5)+'" cy="41" r="3" fill="#3a2418"/><circle cx="'+(x+1.6)+'" cy="39.6" r="1.1" fill="#fff"/>';
+  });
+  s+='<path d="M35 32Q41 28 47 32M53 32Q59 28 65 32" stroke="'+hd+'" stroke-width="'+(k==="marco"?3:2)+'" fill="none" stroke-linecap="round"/>';
+  s+='<path d="M50 44Q53 48 49 49" stroke="'+shade(c.skin,-70)+'" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+  if(k==="marco")s+='<path d="M37 50Q44 43 50 47Q56 43 63 50Q56 54 50 51Q44 54 37 50Z" fill="#6b7078"/><path d="M45 56Q50 59 55 56" stroke="#a23b3b" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  else if(k==="val")s+='<path d="M43 52Q50 58 57 52" stroke="#c0392b" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  else s+='<path d="M42 51Q50 62 58 51Z" fill="#b02a37"/><path d="M44 52Q50 55 56 52" stroke="#fff" stroke-width="2" fill="none"/>';
+  if(k==="leo")s+='<circle cx="41" cy="40" r="7.5" fill="none" stroke="#2b2b33" stroke-width="2"/><circle cx="59" cy="40" r="7.5" fill="none" stroke="#2b2b33" stroke-width="2"/><path d="M48.5 40h3" stroke="#2b2b33" stroke-width="2"/>';
+  return s;
+}
+function fig(k){return '<svg viewBox="0 0 100 160">'+personInner(k)+'</svg>';}
+function bust(k){return '<svg viewBox="0 -6 100 116">'+personInner(k)+'</svg>';}
+function face(k){return '<svg viewBox="22 8 56 58">'+personInner(k)+'</svg>';}
+$("defsin").innerHTML=gdefs();
+
 
 var UP=[
  {n:"Nettoyer la façade du bistrot",cost:60},
@@ -220,7 +310,6 @@ function fmt(n){
   if(n<1e6)return (n/1000).toFixed(1).replace(".0","")+"K";
   return (n/1e6).toFixed(1).replace(".0","")+"M";
 }
-function $(id){return document.getElementById(id);}
 
 var tt;
 function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("show");},2200);}
@@ -263,7 +352,7 @@ function renderOrders(){
   var h="";
   st.orders.forEach(function(o,i){
     var w=WHO[o.who];
-    h+='<div class="order'+(canDeliver(o)?' ok':'')+'" data-i="'+i+'"><div class="top"><span class="av" style="background:'+w.col+'">'+w.n.charAt(0)+'</span><span class="nm">'+w.n+'</span></div><div class="rq">'+
+    h+='<div class="order'+(canDeliver(o)?' ok':'')+'" data-i="'+i+'"><div class="top"><span class="av" style="background:'+w.col+'">'+face(o.who)+'</span><span class="nm">'+w.n+'</span></div><div class="rq">'+
       o.req.map(function(r){return ico(r.c,r.l,true);}).join("")+'</div><div class="rw">+'+o.coins+' pièces</div></div>';
   });
   $("orders").innerHTML=h;
@@ -326,36 +415,56 @@ $("ad").addEventListener("click",function(){
 // Domaine
 function scene(u){
   var night=u>=10;
-  var wall=u<1?"#9a8f86":"#f6c667",roof=u<1?"#6b5b53":"#c0392b";
-  var mw=u<6?"#8f877d":"#e9dcc3",mr=u<6?"#5b5560":"#4a5a8a";
-  var s='<svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">';
-  s+='<rect width="400" height="250" fill="'+(night?"#23244f":"#8ed1f5")+'"/>';
-  if(night){for(var q=0;q<16;q++)s+='<circle cx="'+((q*53+17)%400)+'" cy="'+((q*31+9)%90)+'" r="1.6" fill="#fff"/>';}
-  else s+='<circle cx="350" cy="36" r="18" fill="#fff6a8"/>';
-  s+='<rect y="200" width="400" height="50" fill="'+(u>=7?"#4caf50":"#8a9a5b")+'"/>';
-  // manoir
-  s+='<rect x="210" y="90" width="170" height="110" fill="'+mw+'"/>';
-  s+='<polygon points="200,92 295,40 390,92" fill="'+mr+'"/>';
-  var lit=u>=8?"#ffe08a":"#5a6275";
-  s+='<rect x="226" y="112" width="30" height="34" rx="3" fill="'+lit+'"/><rect x="334" y="112" width="30" height="34" rx="3" fill="'+lit+'"/>';
-  s+='<rect x="226" y="160" width="30" height="30" rx="3" fill="'+lit+'"/><rect x="334" y="160" width="30" height="30" rx="3" fill="'+lit+'"/>';
-  s+='<circle cx="295" cy="84" r="12" fill="'+(u>=9?"#ffe08a":"#5a6275")+'"/>';
-  s+='<rect x="280" y="150" width="30" height="50" rx="4" fill="'+(u>=6?"#7b2d26":"#4a3a35")+'"/>';
-  if(u>=6){for(var c=0;c<4;c++)s+='<rect x="'+(262+c*22)+'" y="146" width="6" height="54" fill="#fff"/>';}
-  if(u>=9)s+='<rect x="262" y="132" width="66" height="6" fill="#333"/><path d="M266 132v-10M280 132v-10M294 132v-10M308 132v-10M322 132v-10" stroke="#333" stroke-width="2"/>';
+  var s='<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg"><defs>'+
+   '<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+(night?"#1b1c46":"#5db8ee")+'"/><stop offset="1" stop-color="'+(night?"#5a3f86":"#d6f0ff")+'"/></linearGradient>'+
+   '<linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+(u>=7?"#6cc070":"#a1ab6c")+'"/><stop offset="1" stop-color="'+(u>=7?"#2f7d3a":"#6e7a48")+'"/></linearGradient>'+
+   '<linearGradient id="wb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+(u<1?"#b0a59b":"#ffe29a")+'"/><stop offset="1" stop-color="'+(u<1?"#8a7f76":"#eab04e")+'"/></linearGradient>'+
+   '<linearGradient id="wm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+(u<6?"#a39b90":"#fbf1da")+'"/><stop offset="1" stop-color="'+(u<6?"#7a7269":"#dcc9a2")+'"/></linearGradient>'+
+   '<linearGradient id="rb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+(u<1?"#85746b":"#ea5b45")+'"/><stop offset="1" stop-color="'+(u<1?"#574a44":"#a52d21")+'"/></linearGradient>'+
+   '<linearGradient id="rm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+(u<6?"#6d6672":"#7a8fc8")+'"/><stop offset="1" stop-color="'+(u<6?"#4a4450":"#3f4f80")+'"/></linearGradient>'+
+   '<linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c8"/><stop offset="1" stop-color="#ffb84d"/></linearGradient>'+
+   '</defs>';
+  s+='<rect width="400" height="260" fill="url(#sky)"/>';
+  if(night){for(var q=0;q<18;q++)s+='<circle cx="'+((q*53+17)%400)+'" cy="'+((q*31+9)%90)+'" r="1.6" fill="#fff"/>';}
+  else s+='<circle cx="350" cy="36" r="18" fill="#fff6a8"/><ellipse cx="90" cy="34" rx="30" ry="9" fill="#fff" opacity=".8"/><ellipse cx="116" cy="28" rx="20" ry="8" fill="#fff" opacity=".8"/>';
+  s+='<rect y="196" width="400" height="64" fill="url(#gr)"/>';
+  s+='<path d="M0 232Q200 214 400 232L400 260L0 260Z" fill="#000" opacity=".08"/>';
+  // manoir : ombre, flanc, façade, toit
+  s+='<ellipse cx="300" cy="202" rx="100" ry="8" fill="#000" opacity=".25"/>';
+  s+='<polygon points="210,90 194,98 194,196 210,200" fill="'+(u<6?"#6a6258":"#c9b78e")+'"/>';
+  s+='<rect x="210" y="90" width="170" height="110" fill="url(#wm)"/>';
+  s+='<polygon points="196,94 295,38 394,94 380,94 295,50 210,94" fill="#00000030"/>';
+  s+='<polygon points="200,92 295,40 390,92" fill="url(#rm)"/>';
+  s+='<rect x="210" y="92" width="170" height="5" fill="#000" opacity=".18"/>';
+  var lit=u>=8?"url(#gl)":"#5a6275";
+  [[226,112],[334,112],[226,160],[334,160]].forEach(function(p){
+    s+='<rect x="'+(p[0]-3)+'" y="'+(p[1]-3)+'" width="36" height="36" rx="4" fill="#fff" opacity=".9"/><rect x="'+p[0]+'" y="'+p[1]+'" width="30" height="30" rx="3" fill="'+lit+'"/><path d="M'+(p[0]+15)+' '+p[1]+'v30M'+p[0]+' '+(p[1]+15)+'h30" stroke="#fff" stroke-width="2"/>';
+  });
+  s+='<circle cx="295" cy="84" r="12" fill="#fff"/><circle cx="295" cy="84" r="9.5" fill="'+(u>=9?"url(#gl)":"#5a6275")+'"/>';
+  s+='<rect x="280" y="150" width="30" height="50" rx="4" fill="'+(u>=6?"#7b2d26":"#4a3a35")+'"/><circle cx="305" cy="176" r="2" fill="#ffd23f"/>';
+  if(u>=6){for(var c=0;c<4;c++)s+='<rect x="'+(262+c*22)+'" y="146" width="6" height="54" rx="2" fill="#fff"/><rect x="'+(262+c*22)+'" y="146" width="2.4" height="54" fill="#000" opacity=".12"/>';s+='<rect x="258" y="140" width="76" height="7" rx="2" fill="#fff"/>';}
+  if(u>=9)s+='<rect x="262" y="128" width="66" height="6" fill="#333"/><path d="M266 128v-10M280 128v-10M294 128v-10M308 128v-10M322 128v-10" stroke="#333" stroke-width="2"/>';
   if(u<6)s+='<path d="M230 112l26 34M350 118l-14 24M300 150l10 24" stroke="#3a3a3a" stroke-width="2"/>';
   if(u>=7){
-    [220,250,330,365,392].forEach(function(x,i){s+='<circle cx="'+x+'" cy="200" r="'+(i%2?12:16)+'" fill="#2e8b3e"/>';});
-    [226,254,334,362].forEach(function(x,i){s+='<circle cx="'+x+'" cy="'+(196-(i%2)*6)+'" r="3.5" fill="'+(i%2?"#ff6b9d":"#ffd23f")+'"/>';});
+    [214,250,330,368,392].forEach(function(x,i){s+='<circle cx="'+x+'" cy="200" r="'+(i%2?12:16)+'" fill="#2e8b3e"/><circle cx="'+(x-4)+'" cy="'+(196)+'" r="'+(i%2?6:8)+'" fill="#43b055" opacity=".8"/>';});
+    [222,254,334,362].forEach(function(x,i){s+='<circle cx="'+x+'" cy="'+(196-(i%2)*6)+'" r="3.5" fill="'+(i%2?"#ff6b9d":"#ffd23f")+'"/>';});
+    s+='<rect x="196" y="160" width="3" height="40" fill="#333"/><circle cx="197.5" cy="158" r="6" fill="'+(night?"url(#gl)":"#ffe9a8")+'"/>';
   }
-  // bistrot
-  s+='<rect x="20" y="120" width="150" height="80" fill="'+wall+'"/>';
-  s+='<polygon points="10,122 95,80 180,122" fill="'+roof+'"/>';
-  var wl=u>=4?"#ffe08a":"#556";
-  s+='<rect x="35" y="140" width="36" height="28" rx="3" fill="'+wl+'"/><rect x="119" y="140" width="36" height="28" rx="3" fill="'+wl+'"/>';
-  s+='<rect x="83" y="160" width="24" height="40" rx="3" fill="#7b4a2a"/>';
-  if(u<1)s+='<path d="M35 140l36 28M71 140l-36 28M119 150h36M30 125l14 30" stroke="#3a3a3a" stroke-width="2.5"/>';
-  if(u>=2)s+='<rect x="58" y="100" width="74" height="16" rx="4" fill="#2b1d3a"/><text x="95" y="112" text-anchor="middle" font-size="11" font-weight="800" fill="#ffd23f" font-family="sans-serif">LES LILAS</text>';
+  // bistrot : ombre, flanc, façade, toit
+  s+='<ellipse cx="100" cy="202" rx="92" ry="8" fill="#000" opacity=".25"/>';
+  s+='<polygon points="170,120 188,112 188,196 170,200" fill="'+(u<1?"#6a6258":"#c68a2e")+'"/>';
+  s+='<rect x="20" y="120" width="150" height="80" fill="url(#wb)"/>';
+  s+='<polygon points="170,122 188,112 100,72 95,80" fill="#000" opacity=".22"/>';
+  s+='<polygon points="10,122 95,80 180,122" fill="url(#rb)"/>';
+  s+='<polygon points="95,80 180,122 95,122" fill="#000" opacity=".16"/>';
+  s+='<rect x="20" y="122" width="150" height="5" fill="#000" opacity=".2"/>';
+  var wl=u>=4?"url(#gl)":"#556";
+  [[35,138],[119,138]].forEach(function(p){
+    s+='<rect x="'+(p[0]-3)+'" y="'+(p[1]-3)+'" width="42" height="34" rx="4" fill="#fff" opacity=".9"/><rect x="'+p[0]+'" y="'+p[1]+'" width="36" height="28" rx="3" fill="'+wl+'"/><path d="M'+(p[0]+18)+' '+p[1]+'v28" stroke="#fff" stroke-width="2"/>';
+  });
+  s+='<rect x="83" y="160" width="24" height="40" rx="3" fill="#7b4a2a"/><circle cx="102" cy="182" r="2" fill="#ffd23f"/>';
+  if(u<1)s+='<path d="M35 138l36 28M71 138l-36 28M119 150h36M30 125l14 30" stroke="#3a3a3a" stroke-width="2.5"/>';
+  if(u>=2)s+='<rect x="58" y="100" width="74" height="16" rx="4" fill="#2b1d3a" stroke="#ffd23f" stroke-width="1.5"/><text x="95" y="112" text-anchor="middle" font-size="11" font-weight="800" fill="#ffd23f" font-family="sans-serif">LES LILAS</text>';
   if(u>=3){
     s+='<rect x="24" y="206" width="30" height="5" fill="#8b5a2b"/><rect x="132" y="206" width="30" height="5" fill="#8b5a2b"/>';
     s+='<path d="M20 194h38l-19-14z" fill="#ff6b6b"/><path d="M128 194h38l-19-14z" fill="#ffd23f"/>';
@@ -365,6 +474,12 @@ function scene(u){
     s+='<path d="M20 30l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" fill="#ffd23f"/><path d="M370 20l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#ff6b9d"/><path d="M200 24l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#2ee59d"/>';
     s+='<rect x="70" y="52" width="120" height="18" rx="5" fill="#ffd23f"/><text x="130" y="65" text-anchor="middle" font-size="11" font-weight="800" fill="#2b1d3a" font-family="sans-serif">Grande réouverture</text>';
   }
+  // personnages
+  function put(k,x,y,w){return '<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+(w*1.6)+'" viewBox="0 0 100 160">'+personInner(k)+'</svg>';}
+  if(u>=1)s+=put("marco",56,176,40);
+  if(u>=2)s+=put("leo",108,180,38);
+  s+=put("chloe",150,174,42);
+  s+=put("val",330,172,42);
   return s+'</svg>';
 }
 
@@ -399,7 +514,7 @@ function dialog(lines,cb){
 function nextLine(){
   if(!dq.length){$("dlg").classList.add("hidden");var f=dcb;dcb=null;if(f)f();return;}
   var l=dq.shift(),w=WHO[l[0]];
-  $("dav").style.background=w.col;$("dav").textContent=w.n.charAt(0);
+  var por=$("dpor");por.innerHTML=bust(l[0]);por.classList.remove("swap");void por.offsetWidth;por.classList.add("swap");
   $("dname").textContent=w.n;$("dtxt").textContent=l[1];
   $("dnext").textContent=dq.length?"Suivant":"Continuer";
 }
