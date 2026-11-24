@@ -501,8 +501,12 @@ function renderDomain(){
   });
 }
 
+var rsArm=false,rsT;
 $("reset").addEventListener("click",function(){
-  if(confirm("Tout recommencer à zéro ?")){st=fresh();sel=-1;save();setInfo("");render();dialog(STORY.intro,function(){st.seen=true;save();});}
+  var b=$("reset");
+  if(!rsArm){rsArm=true;b.textContent="Touche encore pour tout effacer";clearTimeout(rsT);rsT=setTimeout(function(){rsArm=false;b.textContent="Recommencer la partie";},3500);return;}
+  rsArm=false;b.textContent="Recommencer la partie";
+  st=fresh();sel=-1;save();setInfo("");render();dialog(STORY.intro,function(){st.seen=true;save();});
 });
 
 // Dialogues
